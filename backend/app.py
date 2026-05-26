@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from backend.schemas.stress_schema import PredictRequest, PredictResponse
 from backend.schemas.user_schema import UserLogin, UserRegister, UserResponse
 from backend.predict import predict_stress
@@ -10,6 +11,7 @@ from backend.database import init_db, insert_user, get_user, insert_history
 from backend.auth import hash_password, verify_password, create_access_token
 from pydantic import BaseModel
 import json
+from pathlib import Path
 
 app = FastAPI(
     title="SmartSenseAI Backend",
@@ -109,3 +111,9 @@ class ChatMessage(BaseModel):
 def chat(msg: ChatMessage):
     response = get_chat_response(msg.message)
     return {"response": response}
+
+
+# Serve React frontend as static files
+dist_path = Path(__file__).parent.parent / "frontend" / "dist"
+if dist_path.exists():
+    app.mount("/", StaticFiles(directory=str(dist_path), html=True), name="static")
